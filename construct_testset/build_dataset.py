@@ -194,8 +194,7 @@ def store_dataset_items(hf, pdbid, bid, structures_data, contacts_data):
 
     return metadata_l
 
-
-if __name__ == "__main__":
+def build_dataset():
     # set up dataset
     dataset = StructuresDataset(config_dataset['pdb_filepaths'], with_preprocessing=False)
     dataloader = pt.utils.data.DataLoader(dataset, batch_size=None, shuffle=True, num_workers=16, pin_memory=False, prefetch_factor=4)
@@ -283,3 +282,6 @@ if __name__ == "__main__":
         hf['metadata/ckeys'] = np.array([m['ckey'] for m in metadata_l]).astype(np.string_)
         hf['metadata/ctypes'] = np.stack(np.where(np.array([m['ctype'] for m in metadata_l])), axis=1).astype(np.uint32)
         pdb_df.to_csv(config_dataset['release_date_path'])
+        
+if __name__ == "__main__":
+    build_dataset()

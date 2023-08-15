@@ -53,7 +53,7 @@ propose three enzyme-related tasks.
 </details>
 
 
-## GO and EC prediction
+## GO prediction
 
 #### Gligorijević, V., Renfrew, P. D., Kosciolek, T., Leman, J. K., Berenberg, D., Vatanen, T., Chandler, C., Taylor, B. C., Fisk, I. M., Vlamakis, H., Xavier, R. J., Knight, R., Cho, K., & Bonneau, R. (2021). Structure-based protein function prediction using graph convolutional networks. Nature Communications, 12(1), 1-14. https://doi.org/10.1038/s41467-021-23303-9
 <details>

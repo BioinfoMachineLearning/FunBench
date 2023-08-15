@@ -2,7 +2,8 @@ import os
 from Bio import SeqIO
 import subprocess
 import pandas as pd
-
+from build_dataset import build_dataset
+from src.utils import read_tab_separated_file
 
 def save_mol_protein_sequences(pdb_seq_path='data/pdb_seqres.txt', output_path='data/pdb_protein_seq.fasta'):
     if not os.path.exists(pdb_seq_path):
@@ -26,12 +27,37 @@ def save_mol_protein_sequences(pdb_seq_path='data/pdb_seqres.txt', output_path='
     return protein_records
 
 
-def remove_redundant_sequences(
+def split_and_save_data(dataframe, threshold_date, prev_save_path, next_save_path):
+    # Assuming the columns are "deposition_date" and "pdbid"
+    if "deposition_date" not in dataframe.columns or "pdbid" not in dataframe.columns:
+        print("Error: 'deposition_date' or 'pdbid' column not found in the DataFrame.")
+        return
+    
+    # Convert the deposition_date column to datetime
+    dataframe["deposition_date"] = pd.to_datetime(dataframe["deposition_date"])
+    
+    # Split into prev and next dataframes
+    prev_dataframe = dataframe[dataframe["deposition_date"] <= threshold_date]
+    next_dataframe = dataframe[dataframe["deposition_date"] > threshold_date]
+    
+    # Save pdbid columns to text files
+    prev_pdbids = prev_dataframe["pdbid"].tolist()
+    next_pdbids = next_dataframe["pdbid"].tolist()
+    
+    with open(prev_save_path, 'w') as prev_file:
+        prev_file.write('\n'.join(prev_pdbids))
+    
+    with open(next_save_path, 'w') as next_file:
+        next_file.write('\n'.join(next_pdbids))
+
+    return prev_pdbids, next_pdbids
+
+
+
+def seq_search(
     query_path,
     target_path,
     search_result_path,
-    filter_result_path,
-    seq_identity=0.3,
     tmp_dir = './data/tmp'
     ):
     
@@ -52,14 +78,55 @@ def remove_redundant_sequences(
 
         # Step 4: Extract non-redundant sequences
         search_df = read_tab_separated_file(search_result_path)
-        filter_df = search_df[search_df['sequence_identity'] < seq_identity]
-        filter_df.to_csv(filter_result_path, index=False)
+        search_df.to_csv(search_result_path, index=False)
     except Exception as e:
         print("Error:", str(e))
+    
+    return search_df
 
+
+        
+
+def save_sequences_by_ids(fasta_file_path, sequence_ids, output_file_path):
+    sequence_id_set = set(sequence_ids)
+    
+    with open(fasta_file_path, "r") as fasta_file, open(output_file_path, "w") as output_file:
+        batch_size = 1000  # You can adjust this based on your system's memory
+        batch = []
+        
+        for record in (r for r in SeqIO.parse(fasta_file, "fasta") if r.id.split("_")[0] in sequence_id_set):
+            batch.append(record)
+            if len(batch) >= batch_size:
+                SeqIO.write(batch, output_file, "fasta")
+                batch = []
+        if batch:
+            SeqIO.write(batch, output_file, "fasta")
 
 
 
 if __name__ == '__main__':
-    protein_records = save_mol_protein_sequences(pdb_seq_path='data/pdb_seqres.txt', output_path='data/pdb_protein_seq.fasta')
+    pdb_seqres_path = 'data/pdb_seqres.txt'
+    protein_seq_path = 'data/pdb_protein_seq.fasta'
+    release_info_path = 'data/release_date.csv'
+    date_threshold = '2022-01-01'
+    threshold_identity = 0.3
+    
+    
+    protein_records = save_mol_protein_sequences(pdb_seq_path=pdb_seqres_path, output_path=protein_seq_path)
+    build_dataset()
+    release_info = pd.read_csv(release_info_path)
+    prev_pdbids, next_pdbids = split_and_save_data(release_info, date_threshold,
+                                                  'data/prev_pdbids_{}.txt'.format(date_threshold),
+                                                  'data/next_pdbids_{}.txt'.format(date_threshold))
 
+    save_sequences_by_ids(protein_seq_path, prev_pdbids, 'data/prev_pdb_protein_seq.fasta')
+    save_sequences_by_ids(protein_seq_path, next_pdbids, 'data/next_pdb_protein_seq.fasta')
+
+    search_result_path = 'data/next2prev-search_result.csv'
+    search_df = seq_search('data/next_pdb_protein_seq.fasta',
+                                           'data/prev_pdb_protein_seq.fasta', search_result_path)
+    
+    redundant_pdbs = search_df[search_df["sequence_identity"] >= threshold_identity]["query_sequence"].tolist()
+    non_redundant_pdbs = list(set(next_pdbids) - set(redundant_pdbs))
+    
+    save_sequences_by_ids(protein_seq_path, non_redundant_pdbs, 'data/next_pdb_protein_seq_non_redundant.fasta')
