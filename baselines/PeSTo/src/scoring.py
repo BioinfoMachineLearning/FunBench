@@ -1,10 +1,8 @@
 import numpy as np
 import torch as pt
 from scipy.stats import pearsonr
-from sklearn.metrics import roc_auc_score
-
-
-bc_score_names = ['acc','ppv','npv','tpr','tnr','mcc','auc','std']
+from sklearn.metrics import roc_auc_score,average_precision_score, f1_score
+from torcheval.metrics.functional import binary_auprc, binary_f1_score, binary_precision, binary_recall
 
 
 @pt.jit.script
@@ -47,6 +45,12 @@ def tpr(TP, FN):
 
 
 @pt.jit.script
+def fpr(FP, TN):
+    v = FP / (FP + TN)
+    v[pt.isinf(v)] = np.nan
+    return v
+
+@pt.jit.script
 def tnr(TN, FP):
     v = TN / (TN + FP)
     v[pt.isinf(v)] = np.nan
@@ -58,6 +62,26 @@ def mcc(TP, TN, FP, FN):
     v[pt.isinf(v)] = np.nan
     return v
 
+def f1(y, p, P, N):
+    # p = pt.round(p)
+    m = (P > 0) & (N > 0)
+    v = pt.zeros(y.shape[1], dtype=pt.float32, device=y.device)
+    if pt.any(m):
+        idx = pt.arange(m.shape[0])[m]
+        for i in idx:
+            v[i] = binary_f1_score(p[:,i], y[:,i])
+    v[~m] = np.nan
+    return v
+
+@pt.jit.script
+def pr_auc(y, p, P, N):
+    m = (P > 0) & (N > 0)
+    v = pt.zeros(y.shape[1], dtype=pt.float32, device=y.device)
+    if pt.any(m):
+        a = np.array(average_precision_score(y[:,m].cpu().numpy(), p[:,m].cpu().numpy(), average=None))
+        v[m] = pt.from_numpy(a).float().to(y.device)
+    v[~m] = np.nan
+    return v
 
 def roc_auc(y, p, P, N):
     m = (P > 0) & (N > 0)
@@ -74,7 +98,23 @@ def nanmean(x):
     return pt.nansum(x, dim=0) / pt.sum(~pt.isnan(x), dim=0)
 
 
+bc_score_names = [
+    'Acc','PPV(Precision)','NPV','TPR(Recall)',
+    'TNR','MCC','ROC AUC','STD','PR AUC','F1','FPR'
+]
+
 def bc_scoring(y, p):
+    """
+    Compute binary classification scores
+
+    Args:
+        y (torch.Tensor): true labels, [num_residues, num_binding_types]
+        p (torch.Tensor): predicted labels, [num_residues, num_binding_types]
+        
+    Returns
+    -------
+        scores (torch.Tensor): scores, [num_metrics, num_binding_types]
+    """
     # prediction
     q = pt.round(p)
 
@@ -91,10 +131,12 @@ def bc_scoring(y, p):
         mcc(TP, TN, FP, FN),
         roc_auc(y, p, P, N),
         pt.std(p, dim=0),
+        pr_auc(y, p, P, N),#auprc(y, p), 
+        f1(y, p, P, N),
+        fpr(FP, TN)
     ])
 
-    return scores  # ['acc','ppv','npv','tpr','tnr','mcc','auc','std']
-
+    return scores
 
 def reg_scoring(y, p):
     return {
@@ -104,3 +146,9 @@ def reg_scoring(y, p):
         'pcc': pearsonr(y.cpu().numpy(), p.cpu().numpy())[0] if not pt.allclose(y,y[0]) else np.nan,
         'std': float(pt.std(p).cpu().numpy()),
     }
+
+
+
+
+
+

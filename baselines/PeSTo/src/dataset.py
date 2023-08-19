@@ -7,9 +7,10 @@ from .structure import clean_structure, tag_hetatm_chains, split_by_chain, filte
 
 def select_by_sid(dataset, sids_sel):
     # extract sids of dataset
-    sids = np.array(['_'.join([s.split(':')[0] for s in key.split('/')[1::2]]) for key in dataset.keys])
+    sids = np.array(['_'.join([s.split(':')[0] for s in key.split('/')[1::2]]).lower() for key in dataset.keys])
 
     # create selection mask
+    sids_sel = [i.lower() for i in sids_sel]
     m = np.isin(sids, sids_sel)
 
     return m
