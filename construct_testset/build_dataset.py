@@ -58,7 +58,7 @@ def contacts_types(s0, M0, s1, M1, ids, molecule_ids, device=pt.device("cpu")):
     Returns:
     -------
     Y: contact map, [num_residues0, num_residues1, num_molecule_types, num_molecule_types]
-    T: assembly type fingerprint matrix
+    T: assembly type fingerprint matrix, []
     """
     # molecule types for s0 and s1, [num_atoms, num_molecule_types]
     c0 = pt.from_numpy(s0['resname'].reshape(-1,1) == molecule_ids.reshape(1,-1)).to(device)
@@ -169,7 +169,7 @@ def store_dataset_items(hf, pdbid, bid, structures_data, contacts_data):
     # for all subunits with contacts
     for cid0 in contacts_data:
         # define store key
-        key = f"{pdbid.upper()[1:3]}/{pdbid.upper()}/{bid}/{cid0}"
+        key = f"{pdbid.upper()[1:3]}/{pdbid.upper()}/{bid}/{cid0}" # F8/2F8J/1/A:0/A:0:1
 
         # save structure data
         hgrp = hf.create_group(f"data/structures/{key}")

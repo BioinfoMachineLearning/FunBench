@@ -52,7 +52,19 @@ def split_and_save_data(dataframe, threshold_date, prev_save_path, next_save_pat
 
     return prev_pdbids, next_pdbids
 
+def fasta2idtxt(input_fasta, output_txt):
+    sequence_ids = []
 
+    # Parse the FASTA file and extract sequence IDs
+    with open(input_fasta, 'r') as fasta_file:
+        for record in SeqIO.parse(fasta_file, 'fasta'):
+            sequence_ids.append(record.id)
+
+    # Save the sequence IDs to the output text file
+    with open(output_txt, 'w') as txt_file:
+        txt_file.write('\n'.join(sequence_ids))
+
+    print(f"Sequence IDs saved to {output_txt}")
 
 def seq_search(
     query_path,
@@ -111,22 +123,33 @@ if __name__ == '__main__':
     date_threshold = '2022-01-01'
     threshold_identity = 0.3
     
+    prev_seq_path = 'data/prev_pdbids_{}.fasta'.format(date_threshold)
+    next_seq_path = 'data/next_pdbids_{}.fasta'.format(date_threshold)
+    pre_pdbid_path = 'data/prev_pdbids_{}.txt'.format(date_threshold)
+    next_pdbid_path = 'data/next_pdbids_{}.txt'.format(date_threshold)
+    search_result_path = f'data/next2prev-search_result_seq-id-{threshold_identity}.csv'
+    
+    output_seq_path = f'data/nonredundant_thre-{date_threshold}_seq-id-{threshold_identity}.fasta'
+    output_id_path = f'data/nonredundant_thre-{date_threshold}_seq-id-{threshold_identity}.txt'
+    
     
     protein_records = save_mol_protein_sequences(pdb_seq_path=pdb_seqres_path, output_path=protein_seq_path)
     build_dataset()
     release_info = pd.read_csv(release_info_path)
     prev_pdbids, next_pdbids = split_and_save_data(release_info, date_threshold,
-                                                  'data/prev_pdbids_{}.txt'.format(date_threshold),
-                                                  'data/next_pdbids_{}.txt'.format(date_threshold))
+                                                  pre_pdbid_path,
+                                                  next_pdbid_path)
 
-    save_sequences_by_ids(protein_seq_path, prev_pdbids, 'data/prev_pdb_protein_seq.fasta')
-    save_sequences_by_ids(protein_seq_path, next_pdbids, 'data/next_pdb_protein_seq.fasta')
+    save_sequences_by_ids(protein_seq_path, prev_pdbids, prev_seq_path)
+    save_sequences_by_ids(protein_seq_path, next_pdbids, next_seq_path)
 
-    search_result_path = 'data/next2prev-search_result.csv'
-    search_df = seq_search('data/next_pdb_protein_seq.fasta',
-                                           'data/prev_pdb_protein_seq.fasta', search_result_path)
+    search_df = seq_search(next_seq_path,
+                                           prev_seq_path, search_result_path)
     
     redundant_pdbs = search_df[search_df["sequence_identity"] >= threshold_identity]["query_sequence"].tolist()
     non_redundant_pdbs = list(set(next_pdbids) - set(redundant_pdbs))
+    # save non_redundant_pdbs to file
+    with open(output_id_path, 'w') as f:
+        f.write('\n'.join(non_redundant_pdbs))
     
-    save_sequences_by_ids(protein_seq_path, non_redundant_pdbs, 'data/next_pdb_protein_seq_non_redundant.fasta')
+    save_sequences_by_ids(protein_seq_path, non_redundant_pdbs, output_seq_path)
