@@ -4,8 +4,8 @@ from scipy.stats import pearsonr
 from sklearn.metrics import roc_auc_score,average_precision_score, f1_score
 from torcheval.metrics.functional import binary_auprc, binary_f1_score, binary_precision, binary_recall
 
+epsilon = 1e-10
 
-@pt.jit.script
 def binary_classification(y, q):
     # total positive and negatives
     TP = pt.sum(q * y, dim=0)
@@ -18,47 +18,48 @@ def binary_classification(y, q):
     return TP, TN, FP, FN, P, N
 
 
-@pt.jit.script
+
 def acc(TP, TN, FP, FN):
-    return (TP + TN) / (TP + TN + FP + FN)
+    return (TP + TN) / (TP + TN + FP + FN + epsilon)
 
 
-@pt.jit.script
+
 def ppv(TP, FP, P):
-    v = TP / (TP + FP)
+    v = TP / (TP + FP + epsilon) 
+
     v[~(P>0)] = np.nan  # no positives -> undefined
     return v
 
 
-@pt.jit.script
+
 def npv(TN, FN, N):
-    v = TN / (TN + FN)
+    v = TN / (TN + FN + epsilon)
     v[~(N>0)] = np.nan  # no negatives -> undefined
     return v
 
 
-@pt.jit.script
+
 def tpr(TP, FN):
-    v = TP / (TP + FN)
+    v = TP / (TP + FN + epsilon)
     v[pt.isinf(v)] = np.nan
     return v
 
 
-@pt.jit.script
+
 def fpr(FP, TN):
-    v = FP / (FP + TN)
+    v = FP / (FP + TN + epsilon)
     v[pt.isinf(v)] = np.nan
     return v
 
-@pt.jit.script
+
 def tnr(TN, FP):
-    v = TN / (TN + FP)
+    v = TN / (TN + FP + epsilon)
     v[pt.isinf(v)] = np.nan
     return v
 
-@pt.jit.script
+
 def mcc(TP, TN, FP, FN):
-    v = ((TP*TN) - (FP*FN)) / pt.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))
+    v = ((TP*TN) - (FP*FN)) / (pt.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) + epsilon)
     v[pt.isinf(v)] = np.nan
     return v
 
@@ -73,7 +74,7 @@ def f1(y, p, P, N):
     v[~m] = np.nan
     return v
 
-@pt.jit.script
+
 def pr_auc(y, p, P, N):
     m = (P > 0) & (N > 0)
     v = pt.zeros(y.shape[1], dtype=pt.float32, device=y.device)
@@ -93,7 +94,7 @@ def roc_auc(y, p, P, N):
     return v
 
 
-@pt.jit.script
+
 def nanmean(x):
     return pt.nansum(x, dim=0) / pt.sum(~pt.isnan(x), dim=0)
 
