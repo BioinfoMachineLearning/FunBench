@@ -1,16 +1,17 @@
 # List of paths to folders and binaries. All folder paths should finish with slash (/)
 
 # Paths required for prediction.
-library_folder = '' # Where the Github Repo is located.
+library_folder = '/home/zpw97/github-projs/FunBench/baselines/ScanNet/' # Where the Github Repo is located.
 structures_folder = library_folder + 'PDB/' # Where pdb/mmCIF structures files are stored.
 predictions_folder = library_folder + 'predictions/' # Output folder.
 model_folder = library_folder + 'models/' # Where the networks as stored as pairs of files (.h5,.data).
 
 # Additional paths required for prediction with evolutionary information.
 MSA_folder = library_folder + 'MSA/' # Where multiple sequence alignments are stored.
-path2hhblits = None # Path to hhblits binary. Not required if using ScanNet_noMSA networks.
-path2sequence_database = None # Path to sequence database Not required if using ScanNet_noMSA networks. Example:
-
+# Path to hhblits binary. Not required if using ScanNet_noMSA networks.
+path2hhblits = 'hhblits' 
+# Path to sequence database Not required if using ScanNet_noMSA networks. Example:
+path2sequence_database = '/home/zpw97/github-projs/FunBench/baselines/ScanNet/UniRef30_2023_02/UniRef30_2023_02' 
 # path2hhblits = '/path/to/hh-suite/build/bin/hhblits'  # Path to hhblits binary. Not required if using ScanNet_noMSA networks.
 # path2sequence_database = '/path/to/uniclust30_2018_08/uniclust30_2018_08'  # Path to sequence database Not required if using ScanNet_noMSA networks.
 

@@ -1,3 +1,6 @@
+predictions*
+UniRef*
+baselines/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -144,3 +147,6 @@ datasets/.DS_Store
 datasets/.DS_Store
 utilities/paths_jerome.py
 *test.ipynb
+baselines/ScanNetPDB/*
+../ScanNetPDB/
+../ScanNetmsa/

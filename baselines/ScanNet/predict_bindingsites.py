@@ -1,4 +1,5 @@
 import os
+import subprocess
 cores = 5  # Set number of CPUs to use!
 if __name__ == '__main__':
     os.environ["MKL_NUM_THREADS"] = "%s" % cores
@@ -124,9 +125,10 @@ def predict_interface_residues(
     if not os.path.isdir(predictions_folder):
         os.mkdir(predictions_folder)
     if use_MSA:
-        assert os.path.exists(
-            path2hhblits), 'HHblits not found at %s!!' % path2hhblits
-
+        assert os.path.exists(path2hhblits) or\
+                subprocess.check_output([
+                    'which','hhblits']).decode('utf-8'),\
+                'HHblits not found at %s!!' % path2hhblits 
     if query_pdbs is not None:
         try:  # Check whether chain_ids is a list of pdb/chains or a single pdb/chain
             assert len(query_pdbs[0]) > 1

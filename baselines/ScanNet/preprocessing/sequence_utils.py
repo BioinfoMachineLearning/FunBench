@@ -229,6 +229,7 @@ def call_hhblits(sequence, output_alignment, path2hhblits=path2hhblits, path2seq
     os.system(cmd)
     os.system('rm %s' % query_file.replace(' ', '\ '))
     print('Called hhblits finished: Duration %.2f s' % (time.time() - t))
+    print(cmd)
     return output_alignment
 
 
