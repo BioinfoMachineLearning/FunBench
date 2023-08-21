@@ -105,7 +105,7 @@ for i,s in tqdm(enumerate(seqs)):
     except Exception as e:
         # write to log
         with open('error_log.txt', 'a') as f:
-            f.write(f"[{seq_ids[i]}] ",str(e) + '\n')
+            f.write(f"[{seq_ids[i]}] "+str(e) + '\n')
 print("Done!")
 
 # load CNN model
