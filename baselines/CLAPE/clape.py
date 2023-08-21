@@ -50,6 +50,7 @@ parse.add_argument('--input', '-i', help='Input protein sequences in FASTA forma
 parse.add_argument('--output', '-o', help='Output file path, default clape_result.txt',
                    default='clape_result.txt')
 parse.add_argument('--cache', '-c', help='Path for saving cached pre-trained model', default='protbert')
+parse.add_argument('--device', '-d', help='Device to run the model on', default='cuda')
 
 args = parse.parse_args()
 
@@ -78,7 +79,7 @@ if len(seq_ids) != len(seqs):
 # feature generation
 print("=====Loading pre-trained protein language model=====")
 tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False, cache_dir=args.cache)
-pretrain_model = BertModel.from_pretrained("Rostlab/prot_bert", cache_dir=args.cache)
+pretrain_model = BertModel.from_pretrained("Rostlab/prot_bert", cache_dir=args.cache).to(args.device)
 print("Done!")
 
 
@@ -86,6 +87,7 @@ def get_protein_features(seq):
     sequence_Example = ' '.join(seq)
     sequence_Example = re.sub(r"[UZOB]", "X", sequence_Example)
     encoded_input = tokenizer(sequence_Example, return_tensors='pt')
+    encoded_input = {k:t.to(args.device)  if isinstance(t, torch.Tensor) else t for k,t in encoded_input.items()}
     last_hidden = pretrain_model(**encoded_input).last_hidden_state.squeeze(0)[1:-1, :]
     return last_hidden.detach()
 
@@ -108,13 +110,14 @@ elif args.ligand == 'AB':
     predictor.load_state_dict(torch.load("./weights/AB.pth"))
 else:
     raise ValueError(args.ligand)
+predictor.to(args.device).eval()
 print("Done!")
 
 # prediction process
 results = []
 print(f"=====Predicting {args.ligand}-binding sites=====")
 for f in features:
-    out = predictor(f).squeeze(0).detach().numpy()[:, 1]
+    out = predictor(f).squeeze(0).detach().cpu().numpy()[:, 1]
     score = ''.join([str(1) if x > args.threshold else str(0) for x in out])
     results.append(score)
 print("Done!")
@@ -123,6 +126,6 @@ print(f"=====Writing result files into {args.output}=====")
 with open(args.output, 'w') as f:
     for i in range(len(seq_ids)):
         f.write(seq_ids[i] + '\n')
-        f.write(seqs[i] + '\n')
+        f.write(str(seqs[i]) + '\n')
         f.write(results[i] + '\n')
 print(f"Congrats! All process done! Your result file is saved as {args.output}")
