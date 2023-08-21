@@ -1,0 +1,48 @@
+## Evaluation of masif-site 
+
+## Setup
+Here we use the docker to setup the environment. 
+
+### Installation
+
+```
+docker pull pablogainza/masif:latest
+docker run -it pablogainza/masif
+```
+You now start a local container with MaSIF. The first step should be to update the repository to make sure you have the latest version (in case the image has not been update):
+
+```
+root@b30c52bcb86f:/masif# git pull 
+```
+
+## MaSIF-site Evaluation
+
+Look up the docker container ID (used in the next step): `docker ps`. 
+The `3db8544688bc` is the container ID.
+```bash
+(base) zpw97@daisy:~/github-projs/FunBench$ docker ps
+CONTAINER ID   IMAGE               COMMAND   CREATED          STATUS          PORTS     NAMES
+3db8544688bc   pablogainza/masif   "bash"    27 minutes ago   Up 27 minutes             ecstatic_taussig
+
+```
+
+
+Copy the test set PDB ID to docker container. 
+```
+docker cp ../../construct_testset/data/next_pdb_non_redundant_ids.txt 3db8544688bc:/masif/data/masif_site
+docker cp eval.py 3db8544688bc:/masif/data/masif_site
+```
+
+Go into the MaSIF site data directory and run the evaluation script.
+```
+cd data/masif_site/
+python eval.py --pdb_id_path next_pdb_non_redundant_ids.txt
+```
+
+The prediction results are saved in `output/all_feat_3l/pred_data`.
+
+
+Copy prediction results to the local machine.
+```
+docker cp 3db8544688bc:/masif/data/masif_site/output/all_feat_3l/pred_data ./
+```
