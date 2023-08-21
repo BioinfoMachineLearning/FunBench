@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch
 import argparse
 from Bio import SeqIO
+from tqdm import tqdm
 
 # 1DCNN definition
 class CNNOD(nn.Module):
@@ -91,12 +92,20 @@ def get_protein_features(seq):
     last_hidden = pretrain_model(**encoded_input).last_hidden_state.squeeze(0)[1:-1, :]
     return last_hidden.detach()
 
-
+# init error log files
+with open('error_log.txt', 'w') as f:
+    f.write('')
+            
 # generate sequence feature
 features = []
 print("=====Generating protein sequence feature=====")
-for s in seqs:
-    features.append(get_protein_features(s).unsqueeze(0))
+for i,s in tqdm(enumerate(seqs)):
+    try:
+        features.append(get_protein_features(s).unsqueeze(0))
+    except Exception as e:
+        # write to log
+        with open('error_log.txt', 'a') as f:
+            f.write(f"[{seq_ids[i]}] ",str(e) + '\n')
 print("Done!")
 
 # load CNN model
@@ -116,7 +125,7 @@ print("Done!")
 # prediction process
 results = []
 print(f"=====Predicting {args.ligand}-binding sites=====")
-for f in features:
+for f in tqdm(features):
     out = predictor(f).squeeze(0).detach().cpu().numpy()[:, 1]
     score = ''.join([str(1) if x > args.threshold else str(0) for x in out])
     results.append(score)

@@ -2,10 +2,10 @@
 
 
 # Installation
-CLAPE is build up on `pytorch`, `biopython` and `transformers`, 
-you can using an existing pytorch environment and additionally install `biopython` and `transformers` by: 
+CLAPE is build up on `pytorch`, 
+you can using an existing pytorch environment and additionally install following packages by: 
 ```
-pip install biopython transformers
+pip install biopython transformers tqdm
 ```
 
 # Running Predictions
@@ -17,7 +17,9 @@ Running clape to infer DNA and RNA binding sites on the test sequences
  and output the results to `DNA_sites.txt` and `RNA_sites.txt`:
 
 ```
-python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_redundant.fasta --output DNA_sites.txt --ligand DNA
-python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_redundant.fasta --output RNA_sites.txt --ligand RNA
+python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_redundant.fasta\
+ --output DNA_sites.txt --ligand DNA --device cuda:0
+python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_redundant.fasta\
+ --output RNA_sites.txt --ligand RNA --device cuda:1
 ```
 
