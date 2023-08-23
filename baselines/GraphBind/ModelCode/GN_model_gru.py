@@ -4,7 +4,7 @@ from torch import nn
 from torch_cluster import knn_graph,radius_graph
 from torch_geometric.nn import MetaLayer,voxel_grid,global_max_pool,max_pool,avg_pool
 import torch.nn.functional as F
-from torch_geometric.utils import remove_self_loops, add_self_loops, softmax, scatter_
+from torch_geometric.utils import remove_self_loops, add_self_loops, softmax, scatter
 from torch_scatter import scatter_add,scatter_mean,scatter_max
 from math import pi
 from torch_geometric.data import Batch
@@ -152,7 +152,7 @@ def ring_pool(x, pos, batch, ratio, method='max'):
         b_cluster = cluster[batch == b]
         b_x = x[batch == b]
         b_cluster -= ratio * b
-        b_out = scatter_(method, b_x, b_cluster, dim_size=ratio)
+        b_out = scatter( b_x, b_cluster, dim_size=ratio,reduce=method,)
         # i = b_out.cpu().detach().numpy()
 
         out.append(b_out.unsqueeze(0))

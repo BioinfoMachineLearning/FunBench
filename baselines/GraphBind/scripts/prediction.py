@@ -7,10 +7,10 @@ GRAPHBIND = os.path.abspath('..')
 sys.path.append(GRAPHBIND)
 
 # Set the absolute paths of blast+, HHBlits and their databases in here.
-PSIBLAST = '/data/xiaying/tool/ncbi-blast-2.8.1+/bin/psiblast'
-PSIBLAST_DB = '/data/database/nr_19_01_06/nr_v5'
-HHblits = '/data/xiaying/tool/hh-suite/build/bin/hhblits'
-HHblits_DB = '/data/zhangweixun/database/uniclust30_2018_08/uniclust30_2018_08'
+PSIBLAST = '../ncbi-blast-2.14.0+/bin/psiblast'
+PSIBLAST_DB = 'nr.03'
+HHblits = '../hhsuite/bin/hhblits'
+HHblits_DB = '../../ScanNet/UniRef30_2023_02/UniRef30_2023_02'
 
 # DSSP is contained in "scripts/dssp", and it should be given executable permission by commend line "chmod +x scripts/dssp".
 DSSP = GRAPHBIND+'/scripts/dssp'
