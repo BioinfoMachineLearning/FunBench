@@ -1,0 +1,17 @@
+## Evaluation of BSpred
+
+## Download Code 
+```bash
+wget http://zhanglab.dcmb.med.umich.edu/BSpred/INSTALL_BSpred.tgz
+tar -zxvf INSTALL_BSpred.tgz
+```
+## Install Python Dependencies
+```
+pip install biopython
+```
+
+## Running Prediction
+```bash
+python eval.py
+```
+The prediction results will be saved in dir `predictions/<PDBID>/prediction.txt`.

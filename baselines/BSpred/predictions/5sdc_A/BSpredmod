@@ -1,0 +1,429 @@
+#!/usr/bin/perl
+use Math::Trig;
+
+########### setup  the environment and Working DIRectory ###
+#$ENV{'PATH'}="/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/pgi/linux86/bin";
+#$ENV{'LD_LIBRARY_PATH'}="/usr/local/lib:/usr/lib:/lib";
+
+##### report node -------->
+`hostname`=~/(\S+)/;
+$node=$1;
+printf "hostname: $node\n";
+$time=`date`;
+printf "starting time: $time";
+$pwd=`pwd`;
+printf "pwd: $pwd";
+#^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+%ts=(
+     'GLY'=>'G',
+     'ALA'=>'A',
+     'VAL'=>'V',
+     'LEU'=>'L',
+     'ILE'=>'I',
+     'SER'=>'S',
+     'THR'=>'T',
+     'CYS'=>'C',
+     'MET'=>'M',
+     'PRO'=>'P',
+     'ASP'=>'D',
+     'ASN'=>'N',
+     'GLU'=>'E',
+     'GLN'=>'Q',
+     'LYS'=>'K',
+     'ARG'=>'R',
+     'HIS'=>'H',
+     'PHE'=>'F',
+     'TYR'=>'Y',
+     'TRP'=>'W',
+
+     'ASX'=>'B',
+     'GLX'=>'Z',
+     'UNK'=>'X',
+
+     'G'=>'GLY',
+     'A'=>'ALA',
+     'V'=>'VAL',
+     'L'=>'LEU',
+     'I'=>'ILE',
+     'S'=>'SER',
+     'T'=>'THR',
+     'C'=>'CYS',
+     'M'=>'MET',
+     'P'=>'PRO',
+     'D'=>'ASP',
+     'N'=>'ASN',
+     'E'=>'GLU',
+     'Q'=>'GLN',
+     'K'=>'LYS',
+     'R'=>'ARG',
+     'H'=>'HIS',
+     'F'=>'PHE',
+     'Y'=>'TYR',
+     'W'=>'TRP',
+
+     'a'=>'CYS',
+     'b'=>'CYS',
+     'c'=>'CYS',
+     'd'=>'CYS',
+     'e'=>'CYS',
+     'f'=>'CYS',
+     'g'=>'CYS',
+     'h'=>'CYS',
+     'i'=>'CYS',
+     'j'=>'CYS',
+     'k'=>'CYS',
+     'l'=>'CYS',
+     'm'=>'CYS',
+     'n'=>'CYS',
+     'o'=>'CYS',
+     'p'=>'CYS',
+     'q'=>'CYS',
+     'r'=>'CYS',
+     's'=>'CYS',
+     't'=>'CYS',
+     'u'=>'CYS',
+     'v'=>'CYS',
+     'w'=>'CYS',
+     'x'=>'CYS',
+     'y'=>'CYS',
+     'z'=>'CYS',
+
+     'B'=>'ASX',
+     'Z'=>'GLX',
+     'X'=>'CYS',
+    );
+
+@AA=qw(
+       C
+       M
+       F
+       I
+       L
+       V
+       W
+       Y
+       A
+       G
+       T
+       S
+       Q
+       N
+       E
+       D
+       H
+       R
+       K
+       P
+       );
+%hy=(
+     'C' =>'0.29',
+     'M' =>'0.64',
+     'F' =>'1.19',
+     'I' =>'1.38',
+     'L' =>'1.06',
+     'V' =>'1.08',
+     'W' =>'0.81',
+     'Y' =>'0.26',
+     'A' =>'0.62',
+     'G' =>'0.48',
+     'T' =>'-0.05',
+     'S' =>'-0.18',
+     'Q' =>'-0.85',
+     'N' =>'-0.78',
+     'E' =>'-0.74',
+     'D' =>'-0.90',
+     'H' =>'-0.40',
+     'R' =>'-2.53',
+     'K' =>'-1.50',
+     'P' =>'0.12',
+     );
+$s= $ARGV[0];           ##### Name of Input Protein 
+$rootdir=$ARGV[1];      ##### Path of directory where INSTALL_BSpred has been kept
+$data_dir=$ARGV[2];      ##### Path to the directory where seq.txt is kept
+
+################# directories #############################
+$work_dir=$data_dir;   ###### Where all calculations will be done 
+$libdir="$rootdir/library";		# library directory within INSTALL_BSpred
+$mylibdir="$rootdir/library";
+$blastdir="$libdir/blast/bin";          # Blast directory
+$db="$libdir/nr/nr";                    # non-redundant sequence database
+$bindir="$rootdir/bin";
+$outdir="$data_dir";
+################ working directory ########################
+chdir "$work_dir";
+#`cp $libdir/bin/align ./align`;
+###### Make input files ready and check if result already present  ########################
+$pdb1=$s;
+$chain1=$s.".seq";
+`cp $data_dir/seq.txt $data_dir/$chain1`;
+#`cp $data_dir/
+#if(-s "$data_dir/prediction.txt")
+#{
+#    print "Binding Site prediction is complete. Skipping submission.\n";
+#    goto inter;
+#}
+################ make fasta sequence file #################
+
+#####first sequence 
+@seqtxts=`cat $data_dir/$pdb1.seq`;
+$sequence="";
+foreach $seqtxt(@seqtxts){
+    goto pos6 if($seqtxt=~/\>/);
+    $seqtxt=~s/\s//mg;
+    $seqtxt=~s/\n//mg;
+    $sequence=$sequence.$seqtxt;
+  pos6:;
+}
+$Lch1=length $sequence;
+open(seq,">protein1.seq");
+printf seq ">protein1\n";
+for($i=1;$i<=$Lch1;$i++){
+    $a=substr($sequence,$i-1,1);
+    printf seq "$a";
+    if($i==int($i/60)*60){
+	printf seq "\n";
+    }
+}
+printf seq "\n";
+close(seq);
+open(seq,">protein.seq.tmp");
+for($i=1;$i<=$Lch1;$i++){
+    $a=substr($sequence,$i-1,1);
+    printf seq "$a";
+    $seqQ{$i}=$a;   #only for check
+    $log{$i,$seqQ{$i}}++;
+    $log2{$i,$seqQ{$i}}++;
+    if($i==int($i/60)*60){
+	printf seq "\n";
+    }
+}
+close(seq);
+
+$Lch=$Lch1+$Lch2;
+#goto level;
+open(fl,">protein.seq");
+printf fl ">protein $Lch\n";
+close(fl);
+`cat protein.seq.tmp >> protein.seq`;
+`cp protein.seq protein1.seq`;
+
+print "running psipred for secondary structure prediction...\n";
+########### run PSIPRED ####################
+`$bindir/runpsipred.pl $data_dir seq.txt seq.dat $libdir`;
+sleep(1);
+
+########### make 'seq.dat' ########################
+open(psipred,"protein.horiz");
+open(yan,">seq.dat11");
+$j=0;
+while($line=<psipred>){
+    if($line=~/Conf:\s+(\d+)/){
+	$conf=$1;
+	<psipred>=~/Pred:\s+(\S+)/;
+	$pred=$1;
+	<psipred>=~/AA:\s+(\S+)/;
+	$aa=$1;
+	$num=length $aa;
+	for($i=1;$i<=$num;$i++){
+	    $j++;
+	    $conf1=substr($conf,$i-1,1);
+	    $pred1=substr($pred,$i-1,1);
+	    $aa1=substr($aa,$i-1,1);
+	    $sec{$j}=1;
+	    $sec{$j}=2 if($conf1 >=1 && $pred1 eq 'H');
+	    $sec{$j}=4 if($conf1 >=1 && $pred1 eq 'E');
+	    printf yan "%5d   %3s%5d%5d\n",$j,$seq{$j},$sec{$j},$conf1;
+	}
+    }
+}
+close(yan);
+close(psipred);
+
+`cat $data_dir/seq.dat11 > $data_dir/seq.dat1`;
+
+#####################################################################
+###        make exp.dat                                    
+#####################################################################
+print "Running solvent accessibility prediction...\n";
+`cp $bindir/exp.pl .`;
+`./exp.pl $libdir $data_dir`;
+open(fl,"exp1.dat");
+<fl>; #skip this line
+$in=0;
+while($line=<fl>)
+{
+    $line=~/\S+\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
+    for($pp=1;$pp<=17;$pp++)
+    {
+        if($$pp==0)
+        {
+            last;
+        }
+    }
+    $exp[$in]=($pp-1)/20;#exposed    
+    $in++;
+}
+close(fl);
+
+open(wfl,">seq1.exp.sa");
+printf wfl "$in\n";
+for($i=0;$i<$in;$i++)
+{
+    printf wfl "%-4d %8.2f\n",$i+1,$exp[$i];
+}
+close(wfl);
+`cat seq1.exp.sa > seq.exp.sa`;
+
+#exit;
+###############################################################
+#make '$pdb\_pssm.txt'
+###############################################################
+printf "running Psi-blast .....\n";
+if (!-s "pssm.txt"){
+    `cp pssm.txt $pdb1\_pssm.txt`;
+}
+else{
+    `$blastdir/blastpgp  -b 1000 -j 3 -h 0.001 -d $db -i protein1.seq -C psitmp1.chk -Q $pdb1\_pssm.txt > blast1.out`;
+}
+`cat protein1.mtx > protein.mtx`;
+################### interface prediction ####################################
+######## do interface prediction ######
+print "running interface prediction...\n";
+`cp $bindir/features.pl .`;
+#`cp $bindir/simple_test.pl .`;
+`cp $bindir/interface_nn_model2 .`;
+`./features.pl $pdb1 1`;
+`$bindir/simple_test.pl input1 interface_nn_model2 output1`;
+
+@int=();
+$res=0;	
+@interface=();
+open(f1,"output1");
+while($line=<f1>)
+{
+    chomp $line;
+    $res++;	
+    @det=split(" ",$line);
+    $conf_score[$res]=$det[1];	
+    if($det[1] > -0.1)
+    {
+	push(@int,"1");
+    }
+    else
+    {
+	push(@int,"0");
+    }
+    open(saa,"seq1.exp.sa");
+    while($line0=<saa>)
+    {
+        chomp $line0;
+        @dets0=split(" ",$line0);
+        $saa=$dets0[1];
+        if($saa > 0.25){$sas="1";}
+        else{$sas="0";}
+        push(@sass,$sas);
+    }
+
+}
+close(f1);
+
+$num=@int;
+#print "@int\n$num\n";
+########### introduce second filter #########
+for($i=0;$i<$num;$i++)
+{
+    $count=0;
+    $diff=$num-$i;
+    if($i<5)
+    {
+	if($int[$i] eq "1")
+	{
+	    for($j=$i;$j<=$i+5;$j++)
+	    {
+		if($int[$j] eq "1"){$count++;}
+	    }
+	    if($count > 2 && $sass[$i] eq "1")
+	    {
+		$interface[$i]=1;
+	    }
+	    else{$interface[$i]=0;}
+	}
+	else{$interface[$i]=0;}
+    }
+    elsif($diff<5)
+    {
+	if($int[$i] eq "1")
+	{
+	    for($j=$i;$j<=$i-5;$j--)
+	    {
+		if($int[$j] eq "1"){$count++;}
+	    }
+	    if($count > 2 && $sass[$i] eq "1")
+	    {
+		$interface[$i]=1;
+	    }
+	    else{$interface[$i]=0;}
+	}
+	else{$interface[$i]=0;}
+    }
+    else
+    {
+	if($int[$i] eq "1")
+	{
+	    for($j=$i-5;$j<=$i+5;$j++)
+	    {
+		if($int[$j] eq "1"){$count++;}
+	    }
+	    if($count > 5 && $sass[$i] eq "1")
+	    {
+		$interface[$i]=1;
+	    }
+	    else{$interface[$i]=0;}
+	}
+	else{$interface[$i]=0;}
+    }
+}
+
+$interface=join("",@interface);
+$len=length($interface);
+$iter=$len/60;
+$rem=$len%60;
+#print "$rem\n";
+if($rem==0){$rounded=$iter;}
+else{$rounded=int($iter)+1;}
+
+open(seq,">>protein.int");
+#print seq "> protein $len $Lch1\n";
+for($i=0;$i<$len;$i++)
+{
+  
+    $ind=$i+1;
+    if($interface[$ind] eq "1"){printf seq "%5d   %3s\t%5.3f\n",$ind,$ts{$seqQ{$i+1}},$conf_score[$ind];}
+   
+}
+
+inter:;
+`cp protein.int $data_dir/prediction.txt`;
+
+printf "BSpred output file prediction.txt has been generated. Quitting...\n\n";
+
+############## Remove Non-useful files ########################
+`rm psitmp1.*`;
+`rm protein.*`;
+`rm protein1.*`;
+`rm seq.dat1`;
+`rm seq.dat11`;
+`rm seq1.exp.sa`;
+`rm exp*`;
+`rm input*`;
+`rm nninp.txt`;
+`rm *.pl`;
+`rm blast1.out`;
+`rm example.seq`;
+`rm interface_nn_model2`;
+`rm output1`;
+
+exit;
+
+
