@@ -69,56 +69,6 @@ def read_pdb(pdb_filepath):
     }
     return info, ret 
 
-def read_mmcif_file(file_path):
-    
-    # Initialize lists to store the extracted information
-    atom_xyz = []
-    atom_name = []
-    atom_element = []
-    residue_name = []
-    seq_id = []
-    het_flag = []
-    chain_name = []
-    icodes = []
-
-    # Create a MMCIF parser
-    parser = MMCIFParser()
-
-    # Parse the mmCIF file
-    if file_path.endswith('.cif.gz'):
-        # extract the file to .cif
-        # Open the gzipped mmCIF file and parse the content
-        with gzip.open(file_path, "rt") as cif_file:
-            structure = parser.get_structure('structure', cif_file)
-    else:
-        structure = parser.get_structure('structure', file_path)
-
-    # Iterate through the structure and extract the desired information
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    atom_xyz.append(atom.coord)
-                    atom_name.append(atom.name)
-                    atom_element.append(atom.element)
-                    residue_name.append(residue.resname)
-                    seq_id.append(residue.id[1])
-                    het_flag.append(residue.id[0])
-                    chain_name.append(chain.id)
-                    icodes.append(residue.id[2])
-
-    # Convert lists to NumPy arrays
-    return {
-        'xyz': np.array(atom_xyz, dtype=np.float32),
-        'name': np.array(atom_name),
-        'element': np.array(atom_element),
-        'resname': np.array(residue_name),
-        'resid': np.array(seq_id, dtype=np.int32),
-        'het_flag': np.array(het_flag),
-        'chain_name': np.array(chain_name),
-        'icode': np.array(icodes),
-    }
-
 
 
 def read_molecule_cif(filepath):
