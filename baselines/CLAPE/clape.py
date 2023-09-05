@@ -4,6 +4,7 @@
 # @Description  : predicting process
 
 
+import os
 from transformers import BertModel, BertTokenizer
 import re
 import torch.nn as nn
@@ -96,17 +97,6 @@ def get_protein_features(seq):
 with open('error_log.txt', 'w') as f:
     f.write('')
             
-# generate sequence feature
-features = []
-print("=====Generating protein sequence feature=====")
-for i,s in tqdm(enumerate(seqs)):
-    try:
-        features.append(get_protein_features(s).unsqueeze(0))
-    except Exception as e:
-        # write to log
-        with open('error_log.txt', 'a') as f:
-            f.write(f"[{seq_ids[i]}] "+str(e) + '\n')
-print("Done!")
 
 # load CNN model
 print("=====Loading classification model=====")
@@ -122,19 +112,29 @@ else:
 predictor.to(args.device).eval()
 print("Done!")
 
-# prediction process
-results = []
-print(f"=====Predicting {args.ligand}-binding sites=====")
-for f in tqdm(features):
-    out = predictor(f).squeeze(0).detach().cpu().numpy()[:, 1]
-    score = ''.join([str(1) if x > args.threshold else str(0) for x in out])
-    results.append(score)
+
+
+if os.path.exists(args.output):
+    with open(args.output, 'r') as f:
+        res = f.read().splitlines()[::3]
+else:
+    res = []
+    
+for i,s in tqdm(enumerate(seqs)):
+    try:
+        seq_id = seq_ids[i]
+        if seq_id in res:
+            continue
+        f = get_protein_features(s).unsqueeze(0)
+        out = predictor(f).squeeze(0).detach().cpu().numpy()[:, 1]
+        score = ''.join([str(1) if x > args.threshold else str(0) for x in out])
+        with open(args.output, 'a') as f:
+            f.write(seq_id + '\n')
+            f.write(str(s) + '\n')
+            f.write(score + '\n')
+    except Exception as e:
+        # write to log
+        with open('error_log.txt', 'a') as f:
+            f.write(f"[{seq_ids[i]}] "+str(e) + '\n')
 print("Done!")
 
-print(f"=====Writing result files into {args.output}=====")
-with open(args.output, 'w') as f:
-    for i in range(len(seq_ids)):
-        f.write(seq_ids[i] + '\n')
-        f.write(str(seqs[i]) + '\n')
-        f.write(results[i] + '\n')
-print(f"Congrats! All process done! Your result file is saved as {args.output}")

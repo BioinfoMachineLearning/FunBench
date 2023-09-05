@@ -23,3 +23,21 @@ python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_re
  --output RNA_sites.txt --ligand RNA --device cuda:1
 ```
 
+# Computing the metrics
+
+For evaluation on DNA prediction results:
+```
+py compute_metrics.py \
+--prediction_path DNA_sites.txt \
+ --label_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_dna_binding.h5 \
+ --output_csv DNA_eval_results.csv
+```
+For evaluation on RNA prediction results:
+
+```
+py compute_metrics.py \
+--prediction_path RNA_sites.txt  \
+--label_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_rna_binding.h5 --output_csv RNA_eval_results.csv
+```
+
+
