@@ -1,5 +1,10 @@
+baselines/GraphBind.zip
+baselines/GraphBind/eval_results/*
+
 baselines/ScanNetPDB
 construct_testset/data
+baselines/BSpred/predictions/*
+baselines/GraphBind/scripts/uniref50*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
