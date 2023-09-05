@@ -28,3 +28,15 @@ python eval.py
 This script will first run ScanNet on given test set and then compute the scores against true labels.
 
 Predicted binding results are saved in `predictions'.
+
+
+Create a new conda environment for computing the scores:
+```bash
+conda create -n eval_env python=3.9
+pip install torch torcheval pandas numpy 
+```
+Computing the scores and save them in csv files:
+```bash
+py compute_metrics.py --predictions_folder ./predictions --output_csv ./scan_net_noMSA_metrics.csv
+py compute_metrics.py --predictions_folder ./predictions_msa --output_csv ./scan_net_MSA_metrics.csv
+```

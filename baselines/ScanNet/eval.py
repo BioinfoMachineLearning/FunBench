@@ -1,8 +1,20 @@
 import subprocess
+import os
+from glob import glob
+import pandas as pd
+
+def cast_name(s):
+    pdb, _, chain, *_ = s.split('_')
+    pdbid = f"{pdb}_{chain}"
+    return pdbid
 
 
 def run_infer_ls(pdb_id_list, no_msa=True,predictions_folder='./predictions'):
+    completed_pdbs = [i.split('_')[0]+"_"+i.split('_')[2].split('-')[1][0] for i in os.listdir(predictions_folder) if \
+        len(glob(os.path.join(predictions_folder, i,"predictions_*.csv"))) > 0]
     for pdb_id in pdb_id_list:
+        if pdb_id in completed_pdbs:
+            continue
         #cmd: python predict_bindingsites.py 1brs_A  --noMSA 
         cmd = ['python', 'predict_bindingsites.py', pdb_id, '--predictions_folder',predictions_folder]
         if no_msa:
@@ -15,8 +27,6 @@ def run_infer_path(pdb_id_path, no_msa=True,predictions_folder='./predictions'):
         pdb_id_list = list(set([pdb_id.strip() for pdb_id in pdb_id_list]))
     run_infer_ls(pdb_id_list, no_msa,predictions_folder)
     
-
-
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
