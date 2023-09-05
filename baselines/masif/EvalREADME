@@ -29,14 +29,14 @@ CONTAINER ID   IMAGE               COMMAND   CREATED          STATUS          PO
 
 Copy the test set PDB ID to docker container. 
 ```
-docker cp ../../construct_testset/data/next_pdb_non_redundant_ids.txt 3db8544688bc:/masif/data/masif_site
+docker cp /home/zpw97/github-projs/PDBAnnotator/test_pdb_protein_binding.txt 3db8544688bc:/masif/data/masif_site
 docker cp eval.py 3db8544688bc:/masif/data/masif_site
 ```
 
 Go into the MaSIF site data directory and run the evaluation script.
 ```
 cd data/masif_site/
-python eval.py --pdb_id_path next_pdb_non_redundant_ids.txt
+python eval.py --pdb_id_path test_pdb_protein_binding.txt
 ```
 
 The prediction results are saved in `output/all_feat_3l/pred_data`.
