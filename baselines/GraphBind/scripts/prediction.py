@@ -8,7 +8,7 @@ sys.path.append(GRAPHBIND)
 
 # Set the absolute paths of blast+, HHBlits and their databases in here.
 PSIBLAST = '../ncbi-blast-2.14.0+/bin/psiblast'
-PSIBLAST_DB = 'nr.03'
+PSIBLAST_DB = 'uniref50.fasta'
 HHblits = '../hhsuite/bin/hhblits'
 HHblits_DB = '../../ScanNet/UniRef30_2023_02/UniRef30_2023_02'
 
@@ -550,6 +550,10 @@ def main(query_path,filename,chain_id,ligand_list,fea_num_threads):
                                      '-num_threads', str(fea_num_threads),
                                      '-query', '{}/{}.seq'.format(query_path, query_id),
                                      '-out_ascii_pssm', '{}/{}.pssm'.format(query_path, query_id)])
+    print(" ".join([PSIBLAST, '-db', PSIBLAST_DB, '-evalue', '0.001', '-num_iterations', '3',
+                                     '-num_threads', str(fea_num_threads),
+                                     '-query', '{}/{}.seq'.format(query_path, query_id),
+                                     '-out_ascii_pssm', '{}/{}.pssm'.format(query_path, query_id)]))
     HHblits_code = subprocess.call([HHblits, '-d', HHblits_DB, '-cpu', str(fea_num_threads),
                                     '-i', '{}/{}.seq'.format(query_path, query_id),
                                     '-ohhm', '{}/{}.hhm'.format(query_path, query_id)])
