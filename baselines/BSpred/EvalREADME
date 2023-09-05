@@ -8,6 +8,8 @@ tar -zxvf INSTALL_BSpred.tgz
 ## Install Python Dependencies
 ```
 pip install biopython
+pip install -U "ray[default]"
+
 ```
 
 ## Running Prediction
@@ -15,3 +17,9 @@ pip install biopython
 python eval.py
 ```
 The prediction results will be saved in dir `predictions/<PDBID>/prediction.txt`.
+
+## Computing Metrics
+Compute metrics for all predictions in `predictions/` dir and save the results in `BSPred_metrics.csv`.
+```bash
+python compute_metrics.py --predictions_folder  ./predictions --output_csv ./BSPred_metrics.csv
+```
