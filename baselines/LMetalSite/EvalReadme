@@ -1,0 +1,50 @@
+## Setup
+
+### Installation
+```
+conda create --name LMetalSite python=3.8.5
+conda activate LMetalSite
+conda install numpy=1.19.1 pandas=1.1.3 pytorch=1.7.1 -c pytorch
+pip install sentencepiece==0.1.96 transformers==4.17.0 tqdm==4.59.0 biopython
+
+```
+### Download
+
+```
+wget https://zenodo.org/record/4644188/files/prot_t5_xl_uniref50.zip?download=1
+mv prot_t5_xl_uniref50.zip\?download\=1  prot_t5_xl_uniref50.zip
+unzip prot_t5_xl_uniref50.zip
+
+```
+Set path variable ProtTrans_path in ./script/LMetalSite_predict.py.
+
+
+
+### Inference
+```
+conda activate LMetalSite
+
+python ./script/LMetalSite_predict.py --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_ZN_binding.h5  --outpath predictions/ --gpu --run_id ZN_binding
+
+python ./script/LMetalSite_predict.py --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_MN_binding.h5  --outpath predictions/ --gpu --run_id MN_binding
+
+python ./script/LMetalSite_predict.py --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_CA_binding.h5  --outpath predictions/ --gpu --run_id CA_binding
+
+python ./script/LMetalSite_predict.py --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_MG_binding.h5  --outpath predictions/ --gpu --run_id MG_binding
+
+
+conda activate pdb_anno
+
+python compute_metrics.py --binding_type ZN_pred --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_ZN_binding.h5 --pred_path predictions/ZN_binding_0_predictions.csv
+
+
+python compute_metrics.py --binding_type CA_pred --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_CA_binding.h5 --pred_path predictions/CA_binding_0_predictions.csv
+
+
+python compute_metrics.py --binding_type MN_pred --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_MN_binding.h5 --pred_path predictions/MN_binding_0_predictions.csv
+
+
+python compute_metrics.py --binding_type MG_pred --true_df_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_MG_binding.h5 --pred_path predictions/MG_binding_0_predictions.csv
+
+
+```
