@@ -7,6 +7,8 @@ def run_infer_ls(pdb_id_list):
             f.write('')
             
     for pdb_id in pdb_id_list:
+        p = f'output/all_feat_3l/pred_data/pred_{pdb_id}.npy'
+        if os.path.exists(p): pass
         try:
             subprocess.run(['./data_prepare_one.sh', pdb_id, ])
             subprocess.run(['./predict_site.sh', pdb_id, ])
