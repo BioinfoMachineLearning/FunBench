@@ -17,17 +17,18 @@ Running clape to infer DNA and RNA binding sites on the test sequences
  and output the results to `DNA_sites.txt` and `RNA_sites.txt`:
 
 ```
-python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_redundant.fasta\
+
+python infer.py --label_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_dna_binding.h5\
  --output DNA_sites.txt --ligand DNA --device cuda:0
-python clape.py --input ../../construct_testset/data/next_pdb_protein_seq_non_redundant.fasta\
- --output RNA_sites.txt --ligand RNA --device cuda:1
+python infer.py --label_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_rna_binding.h5\
+ --output RNA_sites.txt --ligand RNA --device cuda:0
 ```
 
 # Computing the metrics
 
 For evaluation on DNA prediction results:
 ```
-py compute_metrics.py \
+python compute_metrics.py \
 --prediction_path DNA_sites.txt \
  --label_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_dna_binding.h5 \
  --output_csv DNA_eval_results.csv
@@ -35,7 +36,7 @@ py compute_metrics.py \
 For evaluation on RNA prediction results:
 
 ```
-py compute_metrics.py \
+python compute_metrics.py \
 --prediction_path RNA_sites.txt  \
 --label_h5_path /home/zpw97/github-projs/PDBAnnotator/test_df_rna_binding.h5 --output_csv RNA_eval_results.csv
 ```

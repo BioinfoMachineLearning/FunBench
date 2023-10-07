@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import pandas as pd
 import subprocess
@@ -54,6 +55,33 @@ def compute_metrics(label_h5_path, pred_res_path,output_csv):
         res_df = pd.concat([res_df, tmp_df], axis=0)
     res_df.to_csv(output_csv, index=False)
     return res_df
+
+
+def map_labels(ref_aatype, ref_labels, aatype, mapped_labels):
+    """
+    Maps ref_labels for ref_aatype to aatype and returns the mapped labels.
+
+    Parameters:
+    ref_aatype (numpy.ndarray): Reference amino acid types numpy array of shape N.
+    ref_labels (numpy.ndarray): Labels for each residue in the reference amino acid types, numpy array of shape N.
+    aatype (numpy.ndarray): Amino acid types of shape M.
+
+    Returns:
+    numpy.ndarray: Mapped labels for amino acid types of shape M.
+    """
+
+    for i in range(min(len(ref_aatype), len(mapped_labels))):
+        ref_aa = ref_aatype[i]
+        ref_label = ref_labels[i]
+
+        # Find the index of ref_aa in aatype
+        idx = np.where(aatype == ref_aa)[0]
+
+        # Map the label for ref_aa to aatype
+        mapped_labels[idx] = ref_label
+
+    return mapped_labels
+
 
 
     
