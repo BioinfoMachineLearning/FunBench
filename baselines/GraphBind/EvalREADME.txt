@@ -36,7 +36,13 @@ Running eval.py to infer the binding sites of the test set. Specify the test pdb
 ```
 conda activate GraphBind_env
 cd scripts
-python eval.py
+
+python eval.py --label_h5_path_list /home/zpw97/github-projs/PDBAnnotator/test_df_rna_binding.h5
+python eval.py --label_h5_path_list /home/zpw97/github-projs/PDBAnnotator/test_df_dna_binding.h5
+python eval.py --label_h5_path_list /home/zpw97/github-projs/PDBAnnotator/test_df_ATP_binding.h5
+python eval.py --label_h5_path_list /home/zpw97/github-projs/PDBAnnotator/test_df_CA_binding.h5
+python eval.py --label_h5_path_list /home/zpw97/github-projs/PDBAnnotator/test_df_MG_binding.h5
+python eval.py --label_h5_path_list /home/zpw97/github-projs/PDBAnnotator/test_df_MN_binding.h5
 ```
 
 ## Evaluation
