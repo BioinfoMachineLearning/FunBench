@@ -63,7 +63,7 @@ def compute_metrics(label_h5_path, predictions_folder, output_csv):
             **dict(zip(bc_score_names, metrics_tns.tolist())),
             })
         res_df = pd.concat([res_df, tmp_df], axis=0)
-        
+    print(f"Saving to {output_csv}")
     res_df.to_csv(output_csv, index=False)
     return res_df
     

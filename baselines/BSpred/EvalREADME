@@ -20,6 +20,8 @@ The prediction results will be saved in dir `predictions/<PDBID>/prediction.txt`
 
 ## Computing Metrics
 Compute metrics for all predictions in `predictions/` dir and save the results in `BSPred_metrics.csv`.
+
 ```bash
+conda activate pdb_anno
 python compute_metrics.py --predictions_folder  ./predictions --output_csv ./BSPred_metrics.csv
 ```
